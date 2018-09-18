@@ -1,0 +1,9 @@
+// $Id$
+// vim:ft=javascript
+
+ARG_ENABLE("xmark", "enable xmark support", "no");
+
+if (PHP_XMARK != "no") {
+	EXTENSION("xmark", "xmark.c");
+}
+
