@@ -38,12 +38,18 @@ extern zend_module_entry xmark_module_entry;
 #include "TSRM.h"
 #endif
 
-
-#define IS_XMARK_FLAG          (1<<6)
-
-#define XMARK_FLAG(str)          (GC_FLAGS((str)) |= IS_XMARK_FLAG)
-#define XCLEAR_FLAG(str)         (GC_FLAGS((str)) &= ~IS_XMARK_FLAG)
-#define XCHECK_FLAG(str)         (GC_FLAGS((str)) & IS_XMARK_FLAG)
+#if PHP_VERSION_ID < 70300
+#   define IS_XMARK_FLAG            (1<<6)
+#   define XMARK_FLAG(str)          (GC_FLAGS((str)) |= IS_XMARK_FLAG)
+#   define XCLEAR_FLAG(str)         (GC_FLAGS((str)) &= ~IS_XMARK_FLAG)
+#   define XCHECK_FLAG(str)         (GC_FLAGS((str)) & IS_XMARK_FLAG)
+#else
+#   define EX_CONSTANT(op)          RT_CONSTANT(EX(opline), op)
+#   define IS_XMARK_FLAG            (1<<5)
+#   define XMARK_FLAG(str)          GC_ADD_FLAGS(str, IS_XMARK_FLAG)
+#   define XCLEAR_FLAG(str)         GC_DEL_FLAGS(str, IS_XMARK_FLAG)
+#   define XCHECK_FLAG(str)         (GC_FLAGS((str)) & IS_XMARK_FLAG)
+#endif
 
 
 #define XMARK_OP1_TYPE(opline)  ((opline)->op1_type)

@@ -934,10 +934,10 @@ static int php_xmark_rope_end_handler(zend_execute_data *execute_data) {
         zend_error(E_WARNING, "call function error");
     }
 
-    if (GC_REFCOUNT(Z_ARRVAL(z_rope)) <= 1)
+    if (Z_REFCOUNT(z_rope) <= 1)
         zend_array_destroy(Z_ARRVAL(z_rope));
     else
-        GC_REFCOUNT(Z_ARRVAL(z_rope))--;
+        Z_DELREF(z_rope);
 
     ZVAL_COPY_VALUE(result, &call_func_ret);
     execute_data->opline++;
@@ -1011,7 +1011,7 @@ static int php_xmark_fcall_handler(zend_execute_data *execute_data) {
     }
 
     if (IS_ARRAY == Z_TYPE_P(&z_call)) {
-        if (GC_REFCOUNT(Z_COUNTED(z_call)) <= 1)
+        if (Z_REFCOUNT(z_call) <= 1)
             zend_array_destroy(Z_ARRVAL(z_call));
         else
             Z_DELREF(z_call);
@@ -1019,7 +1019,7 @@ static int php_xmark_fcall_handler(zend_execute_data *execute_data) {
         zend_string_release(Z_STR(z_call));
     }
 
-    if (GC_REFCOUNT(Z_COUNTED(z_params)) <= 1)
+    if (Z_REFCOUNT(z_params) <= 1)
         zend_array_destroy(Z_ARRVAL(z_params));
     else
         Z_DELREF(z_params);
@@ -1039,13 +1039,14 @@ static int php_xmark_init_fcall(zend_execute_data *execute_data) {
     zval *func;
     zend_function *fbc;
 
-    fbc = CACHED_PTR(Z_CACHE_SLOT_P(fname));
-    if (UNEXPECTED(fbc == NULL)) {
-        func = zend_hash_find(EG(function_table), Z_STR_P(fname));
-        if (UNEXPECTED(func == NULL)) {
-            return ZEND_USER_OPCODE_DISPATCH;
-        }
-        fbc = Z_FUNC_P(func);
+    func = zend_hash_find(EG(function_table), Z_STR_P(fname));
+    if (UNEXPECTED(func == NULL)) {
+        return ZEND_USER_OPCODE_DISPATCH;
+    }
+    fbc = Z_FUNC_P(func);
+
+    if (UNEXPECTED(fbc->type != ZEND_USER_FUNCTION)) {
+        return ZEND_USER_OPCODE_DISPATCH;
     }
 
     opline->op1.num = zend_vm_calc_used_stack(opline->extended_value, fbc);
