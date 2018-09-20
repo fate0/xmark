@@ -63,6 +63,7 @@ extern zend_module_entry xmark_module_entry;
 
 ZEND_BEGIN_MODULE_GLOBALS(xmark)
     zend_bool   enable;
+    zend_bool   enable_rename;
     zend_bool   in_callback;
     char *rename_functions;
     char *rename_classes;

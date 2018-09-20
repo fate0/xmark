@@ -1057,7 +1057,6 @@ static void php_xmark_register_opcode_handlers()
 {
     zend_set_user_opcode_handler(ZEND_ECHO, php_xmark_op1_handler);
     zend_set_user_opcode_handler(ZEND_EXIT, php_xmark_op1_handler);
-    zend_set_user_opcode_handler(ZEND_INIT_FCALL, php_xmark_init_fcall);
     zend_set_user_opcode_handler(ZEND_INIT_METHOD_CALL, php_xmark_op2_handler);
     zend_set_user_opcode_handler(ZEND_INIT_USER_CALL, php_xmark_op2_handler);
     zend_set_user_opcode_handler(ZEND_INIT_DYNAMIC_CALL, php_xmark_op2_handler);
@@ -1070,6 +1069,9 @@ static void php_xmark_register_opcode_handlers()
     zend_set_user_opcode_handler(ZEND_DO_ICALL, php_xmark_fcall_handler);
     zend_set_user_opcode_handler(ZEND_DO_UCALL, php_xmark_fcall_handler);
     zend_set_user_opcode_handler(ZEND_DO_FCALL_BY_NAME, php_xmark_fcall_handler);
+
+    if (XMARK_G(enable_rename))
+        zend_set_user_opcode_handler(ZEND_INIT_FCALL, php_xmark_init_fcall);
 }
 
 
@@ -1255,7 +1257,8 @@ static void clear_run_time_cache()
 /* {{{ PHP_INI
  */
 PHP_INI_BEGIN()
-                STD_PHP_INI_BOOLEAN("xmark.enable",      "0", PHP_INI_SYSTEM, OnUpdateBool, enable, zend_xmark_globals, xmark_globals)
+                STD_PHP_INI_BOOLEAN("xmark.enable", "0", PHP_INI_SYSTEM, OnUpdateBool, enable, zend_xmark_globals, xmark_globals)
+                STD_PHP_INI_BOOLEAN("xmark.enable_rename", "0", PHP_INI_SYSTEM, OnUpdateBool, enable_rename, zend_xmark_globals, xmark_globals)
                 STD_PHP_INI_ENTRY("xmark.rename_functions", "", PHP_INI_SYSTEM, OnUpdateString, rename_functions, zend_xmark_globals, xmark_globals)
                 STD_PHP_INI_ENTRY("xmark.rename_classes", "", PHP_INI_SYSTEM, OnUpdateString, rename_classes, zend_xmark_globals, xmark_globals)
 PHP_INI_END()
@@ -1349,7 +1352,7 @@ PHP_FUNCTION(xrename_function)
     zend_string *orig_fname, *new_fname, *lc_orig_fname;
     zval *z_func;
 
-    if (!XMARK_G(enable)) {
+    if (!XMARK_G(enable) || !XMARK_G(enable_rename)) {
         RETURN_FALSE;
     }
 
@@ -1390,7 +1393,7 @@ PHP_FUNCTION(xrename_class)
     zend_string *orig_cname, *new_cname, *lc_orig_cname;
     zval *z_class;
 
-    if (!XMARK_G(enable)) {
+    if (!XMARK_G(enable) || !XMARK_G(enable_rename)) {
         RETURN_FALSE;
     }
 

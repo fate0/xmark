@@ -4,6 +4,7 @@ Check recalc stack size
 <?php if (!extension_loaded("xmark")) print "skip"; ?>
 --INI--
 xmark.enable=1
+xmark.enable_rename=1
 --FILE--
 <?php
 

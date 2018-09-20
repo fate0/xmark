@@ -4,6 +4,7 @@ Check xrename_function
 <?php if (!extension_loaded("xmark")) print "skip"; ?>
 --INI--
 xmark.enable=1
+xmark.enable_rename=1
 include_path={PWD}
 auto_prepend_file=base.php
 --FILE--
