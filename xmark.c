@@ -889,11 +889,6 @@ static int php_xmark_assign_concat_handler(zend_execute_data *execute_data) /* {
 } /* }}} */
 
 
-/**
- * "$testval "
- * @param execute_data
- * @return
- */
 static int php_xmark_rope_end_handler(zend_execute_data *execute_data) {
     const zend_op *opline = execute_data->opline;
     zval *op2, *result;
@@ -1036,10 +1031,33 @@ static int php_xmark_fcall_handler(zend_execute_data *execute_data) {
 }
 
 
+static int php_xmark_init_fcall(zend_execute_data *execute_data) {
+    // 重新设置 stack size
+    zend_op *opline = (zend_op *)execute_data->opline;
+
+    zval *fname = EX_CONSTANT(opline->op2);
+    zval *func;
+    zend_function *fbc;
+
+    fbc = CACHED_PTR(Z_CACHE_SLOT_P(fname));
+    if (UNEXPECTED(fbc == NULL)) {
+        func = zend_hash_find(EG(function_table), Z_STR_P(fname));
+        if (UNEXPECTED(func == NULL)) {
+            return ZEND_USER_OPCODE_DISPATCH;
+        }
+        fbc = Z_FUNC_P(func);
+    }
+
+    opline->op1.num = zend_vm_calc_used_stack(opline->extended_value, fbc);
+    return ZEND_USER_OPCODE_DISPATCH;
+}
+
+
 static void php_xmark_register_opcode_handlers()
 {
     zend_set_user_opcode_handler(ZEND_ECHO, php_xmark_op1_handler);
     zend_set_user_opcode_handler(ZEND_EXIT, php_xmark_op1_handler);
+    zend_set_user_opcode_handler(ZEND_INIT_FCALL, php_xmark_init_fcall);
     zend_set_user_opcode_handler(ZEND_INIT_METHOD_CALL, php_xmark_op2_handler);
     zend_set_user_opcode_handler(ZEND_INIT_USER_CALL, php_xmark_op2_handler);
     zend_set_user_opcode_handler(ZEND_INIT_DYNAMIC_CALL, php_xmark_op2_handler);
@@ -1242,7 +1260,6 @@ PHP_INI_BEGIN()
                 STD_PHP_INI_ENTRY("xmark.rename_classes", "", PHP_INI_SYSTEM, OnUpdateString, rename_classes, zend_xmark_globals, xmark_globals)
 PHP_INI_END()
 /* }}} */
-
 
 PHP_FUNCTION(xid)
 {
