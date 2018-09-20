@@ -173,6 +173,11 @@ void do_fcall_by_name(string $call, array $params)
 xmark.enable = 1
 ```
 
+可通过配置文件启用重命名 PHP 用户函数/类
+```
+xmark.enable_rename = 1
+```
+
 也可以通过配置文件重命名 PHP 内部函数：
 ```
 xmark.rename_functions="
