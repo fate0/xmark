@@ -917,10 +917,7 @@ static int php_xmark_rope_end_handler(zend_execute_data *execute_data) {
     ZVAL_NEW_ARR(&z_rope);
     zend_hash_init(Z_ARRVAL(z_rope), opline->extended_value+1, NULL, ZVAL_PTR_DTOR, 0);
 
-    if ((XMARK_OP2_TYPE(opline) & IS_CV) || Z_TYPE_P(op2) != IS_STRING)
-        rope[opline->extended_value] = zval_get_string(op2);
-    else
-        rope[opline->extended_value] = Z_STR_P(op2);
+    rope[opline->extended_value] = zval_get_string(op2);
 
     zval tmp;
     for (i=0; i<=opline->extended_value; i++) {
