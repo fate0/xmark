@@ -14,8 +14,6 @@
 * 能够 Hook 绝大多数函数/类
 * 能够 Hook 部分 opcode
 
-不建议在生产环境中使用。
-
 ### 安装
 
 * linux:
@@ -173,7 +171,7 @@ void do_fcall_by_name(string $call, array $params)
 xmark.enable = 1
 ```
 
-可通过配置文件启用重命名 PHP 用户函数/类
+可通过配置文件启用重命名 PHP 用户函数/类 (不建议在生产环境中启用)
 ```
 xmark.enable_rename = 1
 ```
