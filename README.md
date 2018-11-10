@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/fate0/xmark.svg?branch=master)](https://travis-ci.org/fate0/xmark)
 [![AppVeyor Status](https://ci.appveyor.com/api/projects/status/github/fate0/xmark?branch=master&svg=true)](https://ci.appveyor.com/project/fate0/xmark/)
-![Status](https://img.shields.io/badge/status-wip-brightgreen.svg)
 ![GitHub](https://img.shields.io/github/license/fate0/xmark.svg)
 
 
