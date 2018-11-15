@@ -56,6 +56,10 @@ extern zend_module_entry xmark_module_entry;
 #define XMARK_OP2_TYPE(opline)  ((opline)->op2_type)
 
 
+#define XMARK_IS_FUNCTION   1 << 0
+#define XMARK_IS_CLASS      1 << 1
+
+
 #if PHP_VERSION_ID < 70100
 #define XMARK_RET_USED(opline) (!((opline)->result_type & EXT_TYPE_UNUSED))
 #define XMARK_ISERR(var)       ((var) == &EG(error_zval))
@@ -102,10 +106,10 @@ PHP_FUNCTION(xrename_function);
 PHP_FUNCTION(xrename_class);
 PHP_FUNCTION(xregister_opcode_callback);
 
-static void rename_from_ini_value(HashTable *ht, const char *ini_name);
+static void rename_from_ini_value(HashTable *ht, const char *ini_name, int type);
 static zend_always_inline int xmark_zstr(zval *z_str);
-static zend_always_inline Bucket *rename_hash_key(HashTable *ht, zend_string *orig_name, zend_string *new_name);
-static zend_always_inline Bucket *rename_hash_str_key(HashTable *ht, const char *orig_name, const char *new_name);
+static zend_always_inline Bucket *rename_hash_key(HashTable *ht, zend_string *orig_name, zend_string *new_name, int type);
+static zend_always_inline Bucket *rename_hash_str_key(HashTable *ht, const char *orig_name, const char *new_name, int type);
 
 #endif /* PHP_XMARK_H */
 

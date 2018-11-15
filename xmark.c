@@ -1073,7 +1073,7 @@ static void php_xmark_register_opcode_handlers()
 }
 
 
-static void rename_from_ini_value(HashTable *ht, const char *ini_value)
+static void rename_from_ini_value(HashTable *ht, const char *ini_value, int type)
 {
     char *e, *orig_name = NULL, *new_name = NULL;
 
@@ -1095,7 +1095,7 @@ static void rename_from_ini_value(HashTable *ht, const char *ini_value)
             case ',':
                 if (orig_name && new_name) {
                     *e = '\0';
-                    rename_hash_str_key(ht, orig_name, new_name);
+                    rename_hash_str_key(ht, orig_name, new_name, type);
                 }
                 orig_name = NULL;
                 new_name = NULL;
@@ -1117,7 +1117,7 @@ static void rename_from_ini_value(HashTable *ht, const char *ini_value)
         e++;
     }
     if (orig_name && new_name) {
-        rename_hash_str_key(ht, orig_name, new_name);
+        rename_hash_str_key(ht, orig_name, new_name, type);
     }
 }
 
@@ -1135,7 +1135,7 @@ static zend_always_inline int xmark_zstr(zval *z_str)
 }
 
 
-static zend_always_inline Bucket *rename_hash_key(HashTable *ht, zend_string *orig_name, zend_string *new_name)
+static zend_always_inline Bucket *rename_hash_key(HashTable *ht, zend_string *orig_name, zend_string *new_name, int type)
 {
     zend_ulong h;
     uint32_t nIndex;
@@ -1196,6 +1196,17 @@ static zend_always_inline Bucket *rename_hash_key(HashTable *ht, zend_string *or
     p->h = h = zend_string_hash_val(p->key);
     nIndex = h | ht->nTableMask;
 
+    // 重命名函数名 or 类名
+    if (type == XMARK_IS_FUNCTION) {
+        zend_string_release(p->val.value.func->common.function_name);
+        zend_string_addref(p->key);
+        p->val.value.func->common.function_name = p->key;
+    } else if (type == XMARK_IS_CLASS) {
+        zend_string_release(p->val.value.ce->name);
+        zend_string_addref(p->key);
+        p->val.value.ce->name = p->key;
+    }
+
     if (HT_HASH(ht, nIndex) != HT_INVALID_IDX)
         Z_NEXT(p->val) = HT_HASH(ht, nIndex);
 
@@ -1209,7 +1220,7 @@ static zend_always_inline Bucket *rename_hash_key(HashTable *ht, zend_string *or
 }
 
 
-static zend_always_inline Bucket *rename_hash_str_key(HashTable *ht, const char *orig_name, const char *new_name)
+static zend_always_inline Bucket *rename_hash_str_key(HashTable *ht, const char *orig_name, const char *new_name, int type)
 {
     zend_string *str_orig_name, *str_new_name;
     Bucket *p;
@@ -1217,7 +1228,7 @@ static zend_always_inline Bucket *rename_hash_str_key(HashTable *ht, const char 
     str_orig_name = zend_string_init(orig_name, strlen(orig_name), 0);
     str_new_name = zend_string_init(new_name, strlen(new_name), 0);
 
-    p = rename_hash_key(ht, str_orig_name, str_new_name);
+    p = rename_hash_key(ht, str_orig_name, str_new_name, type);
 
     zend_string_release(str_orig_name);
     zend_string_release(str_new_name);
@@ -1371,7 +1382,7 @@ PHP_FUNCTION(xrename_function)
         return;
     }
 
-    Bucket *p = rename_hash_key(EG(function_table), orig_fname, new_fname);
+    Bucket *p = rename_hash_key(EG(function_table), orig_fname, new_fname, XMARK_IS_FUNCTION);
     if (!p) {
         zend_error(E_ERROR, "rename function '%s' to '%s' failed", ZSTR_VAL(orig_fname), ZSTR_VAL(new_fname));
         RETURN_FALSE;
@@ -1412,7 +1423,7 @@ PHP_FUNCTION(xrename_class)
         return;
     }
 
-    Bucket *p = rename_hash_key(EG(class_table), orig_cname, new_cname);
+    Bucket *p = rename_hash_key(EG(class_table), orig_cname, new_cname, XMARK_IS_CLASS);
     if (!p) {
         zend_error(E_ERROR, "rename class '%s' to '%s' failed", ZSTR_VAL(orig_cname), ZSTR_VAL(new_cname));
         RETURN_FALSE;
@@ -1475,8 +1486,8 @@ PHP_MINIT_FUNCTION(xmark)
     REGISTER_LONG_CONSTANT("XMARK_DO_FCALL_BY_NAME", ZEND_DO_FCALL_BY_NAME, CONST_CS|CONST_PERSISTENT);
 
     php_xmark_register_opcode_handlers();
-    rename_from_ini_value(CG(function_table), XMARK_G(rename_functions));
-    rename_from_ini_value(CG(class_table), XMARK_G(rename_classes));
+    rename_from_ini_value(CG(function_table), XMARK_G(rename_functions), XMARK_IS_FUNCTION);
+    rename_from_ini_value(CG(class_table), XMARK_G(rename_classes), XMARK_IS_CLASS);
 
     return SUCCESS;
 }
