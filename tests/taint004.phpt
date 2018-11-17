@@ -17,5 +17,5 @@ die($b);
 
 ?>
 --EXPECT--
-exit_handler:xmark: "tainted string." 1
+exit_handler:xmark: 'tainted string.' 1
 tainted string.

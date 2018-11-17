@@ -59,15 +59,15 @@ test();
 ?>
 --EXPECT--
 ====== dirname =======
-echo_handler:xmark: "\/home\/fate0\/playstation" 1
+echo_handler:xmark: '/home/fate0/playstation' 1
 /home/fate0/playstation
 ====== basename =======
-echo_handler:xmark: "assassin's creed" 1
+echo_handler:xmark: 'assassin\'s creed' 1
 assassin's creed
 ====== pathinfo1 =======
-echo_handler:xmark: "assassin's creed" 1
+echo_handler:xmark: 'assassin\'s creed' 1
 assassin's creed
 ====== pathinfo2 =======
-echo_handler:xmark: "\/home\/fate0\/playstation" 1
+echo_handler:xmark: '/home/fate0/playstation' 1
 /home/fate0/playstation
 ====== end =======

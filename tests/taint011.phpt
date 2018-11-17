@@ -22,7 +22,7 @@ echo $var;
 
 ?>
 --EXPECT--
-echo_handler:xmark: "tainted string\n" 1
+echo_handler:xmark: 'tainted string\n' 1
 tainted string
-echo_handler:xmark: "tainted string\n" 1
+echo_handler:xmark: 'tainted string\n' 1
 tainted string

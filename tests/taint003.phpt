@@ -22,8 +22,8 @@ exit($b);
 
 ?>
 --EXPECT--
-echo_handler:xmark: "tainted string" 1
+echo_handler:xmark: 'tainted string' 1
 tainted string
 bool(true)
-exit_handler:xmark: "tainted stringxxxx" 1
+exit_handler:xmark: 'tainted stringxxxx' 1
 tainted stringxxxx

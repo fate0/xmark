@@ -23,6 +23,6 @@ var_dump(xcheck($c->foo));
 ?>
 --EXPECT--
 bool(true)
-echo_handler:xmark: "tainted string.\n" 1
+echo_handler:xmark: 'tainted string.\n' 1
 tainted string.
 bool(true)

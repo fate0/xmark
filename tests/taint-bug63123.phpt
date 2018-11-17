@@ -35,7 +35,7 @@ foreach ($a as $key => $val) {
 
 ?>
 --EXPECT--
-echo_handler:xmark: "a\n" 1
+echo_handler:xmark: 'a\n' 1
 a
-echo_handler:xmark: "b\n" 1
+echo_handler:xmark: 'b\n' 1
 b

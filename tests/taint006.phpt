@@ -45,17 +45,17 @@ test2($e);
 ?>
 --EXPECT--
 ======= normal test ======
-echo_handler:xmark: "a tainted string\n" 1
+echo_handler:xmark: 'a tainted string\n' 1
 a tainted string
-echo_handler:xmark: "a tainted string\n" 1
+echo_handler:xmark: 'a tainted string\n' 1
 a tainted string
 ======= normal a&b ======
-echo_handler:xmark: "a tainted string\n" 1
+echo_handler:xmark: 'a tainted string\n' 1
 a tainted string
-echo_handler:xmark: "a tainted string\n" 1
+echo_handler:xmark: 'a tainted string\n' 1
 a tainted string
 ======= normal c&d ======
-echo_handler:xmark: "c tainted string\n" 1
+echo_handler:xmark: 'c tainted string\n' 1
 c tainted string
-echo_handler:xmark: "c tainted string\n" 1
+echo_handler:xmark: 'c tainted string\n' 1
 c tainted string

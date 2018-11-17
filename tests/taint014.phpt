@@ -31,8 +31,8 @@ call_user_func(array($d, $fname));
 
 ?>
 --EXPECTF--
-init_user_dynamic_call_handler:xcheck: "test" 1
-init_user_dynamic_call_handler:xcheck: "test" 1
-init_user_dynamic_call_handler:xcheck: "test" 1
-init_user_dynamic_call_handler:xcheck: "test" 1
-init_user_dynamic_call_handler:xcheck: "test" 1
+init_user_dynamic_call_handler:xcheck: 'test' 1
+init_user_dynamic_call_handler:xcheck: 'test' 1
+init_user_dynamic_call_handler:xcheck: 'test' 1
+init_user_dynamic_call_handler:xcheck: 'test' 1
+init_user_dynamic_call_handler:xcheck: 'test' 1

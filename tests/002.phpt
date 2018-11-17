@@ -39,5 +39,5 @@ bool(false)
 bool(false)
 bool(true)
 bool(true)
-echo_handler:xmark: "aaaa" 1
+echo_handler:xmark: 'aaaa' 1
 aaaa

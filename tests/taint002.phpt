@@ -35,8 +35,8 @@ eval("return '$a';");
 
 ?>
 --EXPECT--
-echo_handler:xmark: "tainted string\n" 1
+echo_handler:xmark: 'tainted string\n' 1
 tainted string
 file_put_contents:xcheck: data 1
 tainted string+
-include_or_eval_handler:xmark: "return 'tainted string+';" 1
+include_or_eval_handler:xmark: 'return \'tainted string+\';' 1

@@ -24,36 +24,41 @@ function xcheck_var($var, $recursive=true) {
 }
 
 
+function repr($var) {
+    return addcslashes(var_export($var, true), "\n\r\t");
+}
+
+
 function echo_handler($string) {
     if (is_string($string) && xcheck($string)) {
-        echo "echo_handler:xmark: ".json_encode($string)." ".xcheck($string)."\n";
+        echo "echo_handler:xmark: ".repr($string)." ".xcheck($string)."\n";
     }
 }
 
 function exit_handler($string) {
     if (is_string($string) && xcheck($string)) {
-        echo "exit_handler:xmark: ".json_encode($string)." ".xcheck($string)."\n";
+        echo "exit_handler:xmark: ".repr($string)." ".xcheck($string)."\n";
     }
 }
 
 function init_user_dynamic_call_handler($funcname) {
     if (is_string($funcname)) {
         if (xcheck($funcname)) {
-            echo "init_user_dynamic_call_handler:xcheck: ".json_encode($funcname)." ".xcheck($funcname)."\n";
+            echo "init_user_dynamic_call_handler:xcheck: ".repr($funcname)." ".xcheck($funcname)."\n";
         }
     } else if (is_array($funcname)) {
         if (xcheck($funcname[0])) {
-            echo "init_user_dynamic_call_handler:xcheck: ".json_encode($funcname[0])." ".xcheck($funcname[0])."\n";
+            echo "init_user_dynamic_call_handler:xcheck: ".repr($funcname[0])." ".xcheck($funcname[0])."\n";
         }
         if (xcheck($funcname[1])) {
-            echo "init_user_dynamic_call_handler:xcheck: ".json_encode($funcname[1])." ".xcheck($funcname[1])."\n";
+            echo "init_user_dynamic_call_handler:xcheck: ".repr($funcname[1])." ".xcheck($funcname[1])."\n";
         }
     }
 }
 
 function include_or_eval_handler($param) {
     if (xcheck($param)) {
-        echo "include_or_eval_handler:xmark: ".json_encode($param)." ".xcheck($param)."\n";
+        echo "include_or_eval_handler:xmark: ".repr($param)." ".xcheck($param)."\n";
     }
 }
 
