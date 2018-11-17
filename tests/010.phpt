@@ -1,7 +1,7 @@
 --TEST--
 Check recalc stack size
 --SKIPIF--
-<?php if (!extension_loaded("xmark")) print "skip"; ?>
+<?php if (!extension_loaded("xmark") || !extension_loaded("sqlite3")) print "skip"; ?>
 --INI--
 xmark.enable=1
 xmark.enable_rename=1

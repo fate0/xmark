@@ -1,7 +1,7 @@
 --TEST--
 Check for Reflection::getName
 --SKIPIF--
-<?php if (!extension_loaded("xmark")) print "skip"; ?>
+<?php if (!extension_loaded("xmark") || !extension_loaded("sqlite3")) print "skip"; ?>
 --INI--
 xmark.enable=1
 xmark.rename_functions=system:prvd_system
