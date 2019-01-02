@@ -1196,16 +1196,19 @@ static zend_always_inline Bucket *rename_hash_key(HashTable *ht, zend_string *or
     p->h = h = zend_string_hash_val(p->key);
     nIndex = h | ht->nTableMask;
 
-    // 重命名函数名 or 类名
+    // 重命名函数名
     if (type == XMARK_IS_FUNCTION) {
         zend_string_release(p->val.value.func->common.function_name);
         zend_string_addref(p->key);
         p->val.value.func->common.function_name = p->key;
-    } else if (type == XMARK_IS_CLASS) {
+    }
+    /*
+    else if (type == XMARK_IS_CLASS) {
         zend_string_release(p->val.value.ce->name);
         zend_string_addref(p->key);
         p->val.value.ce->name = p->key;
     }
+     */
 
     if (HT_HASH(ht, nIndex) != HT_INVALID_IDX)
         Z_NEXT(p->val) = HT_HASH(ht, nIndex);
