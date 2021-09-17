@@ -29,7 +29,11 @@
 #include "php_xmark.h"
 
 ZEND_DECLARE_MODULE_GLOBALS(xmark)
-
+#if PHP_VERSION_ID >= 70400
+#define XMARK_ASSIGN_CONCAT 500
+#else
+#define XMARK_ASSIGN_CONCAT ZEND_ASSIGN_CONCAT
+#endif
 
 /* These are most copied from zend_execute.c: zend_fetch_dimension_address */
 static int php_xmark_make_real_object(zval *object) /* {{{ */ {
@@ -169,7 +173,7 @@ static zval *php_xmark_fetch_dimension_address_inner(HashTable *ht, const zval *
                 hval = zend_dval_to_lval(Z_DVAL_P(dim));
                 goto num_index;
             case IS_RESOURCE:
-                zend_error(E_NOTICE, "Resource ID#%pd used as offset, casting to integer (%pd)", Z_RES_HANDLE_P(dim), Z_RES_HANDLE_P(dim));
+                zend_error(E_NOTICE, "Resource ID#%dd used as offset, casting to integer (%dd)", Z_RES_HANDLE_P(dim), Z_RES_HANDLE_P(dim));
                 hval = Z_RES_HANDLE_P(dim);
                 goto num_index;
             case IS_FALSE:
@@ -354,7 +358,7 @@ static void php_xmark_assign_op_overloaded_property(zval *object, zval *property
         SEPARATE_ZVAL_NOREF(z);
 
         // only for ZEND_ASSIGN_CONCAT
-        z_fname = zend_hash_index_find(&XMARK_G(callbacks), ZEND_ASSIGN_CONCAT);
+        z_fname = zend_hash_index_find(&XMARK_G(callbacks), XMARK_ASSIGN_CONCAT);
         if (z_fname) {
             ZVAL_COPY_VALUE(&call_func_params[0], z);
             ZVAL_COPY_VALUE(&call_func_params[1], value);
@@ -403,7 +407,7 @@ static void php_xmark_binary_assign_op_obj_dim(zval *object, zval *property, zva
         }
 
         // only for ZEND_ASSIGN_CONCAT
-        z_fname = zend_hash_index_find(&XMARK_G(callbacks), ZEND_ASSIGN_CONCAT);
+        z_fname = zend_hash_index_find(&XMARK_G(callbacks), XMARK_ASSIGN_CONCAT);
         if (z_fname) {
             ZVAL_COPY_VALUE(&call_func_params[0], Z_ISREF_P(z) ? Z_REFVAL_P(z) : z);
             ZVAL_COPY_VALUE(&call_func_params[1], value);
@@ -546,7 +550,7 @@ static int php_xmark_binary_assign_op_helper(binary_op_type binary_op, zend_exec
         }
     }
 
-    z_fname = zend_hash_index_find(&XMARK_G(callbacks), ZEND_ASSIGN_CONCAT);
+    z_fname = zend_hash_index_find(&XMARK_G(callbacks), XMARK_ASSIGN_CONCAT);
     if (z_fname) {
         ZVAL_COPY_VALUE(&call_func_params[0], var_ptr);
         ZVAL_COPY_VALUE(&call_func_params[1], value);
@@ -617,7 +621,7 @@ static int php_xmark_binary_assign_op_obj_helper(binary_op_type binary_op, zend_
             ZVAL_DEREF(var_ptr);
             SEPARATE_ZVAL_NOREF(var_ptr);
 
-            z_fname = zend_hash_index_find(&XMARK_G(callbacks), ZEND_ASSIGN_CONCAT);
+            z_fname = zend_hash_index_find(&XMARK_G(callbacks), XMARK_ASSIGN_CONCAT);
             if (z_fname) {
                 ZVAL_COPY_VALUE(&call_func_params[0], var_ptr);
                 ZVAL_COPY_VALUE(&call_func_params[1], value);
@@ -718,7 +722,7 @@ static int php_xmark_binary_assign_op_dim_helper(binary_op_type binary_op, zend_
             ZVAL_DEREF(var_ptr);
             SEPARATE_ZVAL_NOREF(var_ptr);
 
-            z_fname = zend_hash_index_find(&XMARK_G(callbacks), ZEND_ASSIGN_CONCAT);
+            z_fname = zend_hash_index_find(&XMARK_G(callbacks), XMARK_ASSIGN_CONCAT);
             if (z_fname) {
                 ZVAL_COPY_VALUE(&call_func_params[0], var_ptr);
                 ZVAL_COPY_VALUE(&call_func_params[1], value);
@@ -888,6 +892,63 @@ static int php_xmark_assign_concat_handler(zend_execute_data *execute_data) /* {
     return result;
 } /* }}} */
 
+/* 适配php7.4 */
+#if PHP_VERSION_ID >= 70400
+static int php_xmark_assign_op_handler(zend_execute_data *execute_data) /* {{{ */ {
+	const zend_op *opline = execute_data->opline;
+    int result = 0;
+
+    if (XMARK_G(in_callback)) {
+        return ZEND_USER_OPCODE_DISPATCH;
+    }
+
+    XMARK_G(in_callback) = 1;
+
+	if (UNEXPECTED(opline->extended_value == ZEND_CONCAT)) {
+		result = php_xmark_binary_assign_op_helper(concat_function, execute_data);
+	}
+
+	XMARK_G(in_callback) = 0;
+    return result;
+} /* }}} */
+
+static int php_xmark_assign_dim_op_handler(zend_execute_data *execute_data) /* {{{ */ {
+	const zend_op *opline = execute_data->opline;
+    int result = 0;
+
+    if (XMARK_G(in_callback)) {
+        return ZEND_USER_OPCODE_DISPATCH;
+    }
+
+    XMARK_G(in_callback) = 1;
+
+	if (UNEXPECTED(opline->extended_value == ZEND_CONCAT)) {
+		result = php_xmark_binary_assign_op_dim_helper(concat_function, execute_data);
+	}
+
+	XMARK_G(in_callback) = 0;
+    return result;
+} /* }}} */
+
+static int php_xmark_assign_obj_op_handler(zend_execute_data *execute_data) /* {{{ */ {
+	const zend_op *opline = execute_data->opline;
+    int result = 0;
+
+    if (XMARK_G(in_callback)) {
+        return ZEND_USER_OPCODE_DISPATCH;
+    }
+
+    XMARK_G(in_callback) = 1;
+
+	if (UNEXPECTED(opline->extended_value == ZEND_CONCAT)) {
+		result = php_xmark_binary_assign_op_obj_helper(concat_function, execute_data);
+	}
+
+	XMARK_G(in_callback) = 0;
+    return result;
+} /* }}} */
+#endif
+
 
 static int php_xmark_rope_end_handler(zend_execute_data *execute_data) {
     const zend_op *opline = execute_data->opline;
@@ -959,6 +1020,7 @@ static int php_xmark_fcall_handler(zend_execute_data *execute_data) {
     if (XMARK_G(in_callback)) {
         return ZEND_USER_OPCODE_DISPATCH;
     }
+
 
     z_fname = zend_hash_index_find(&XMARK_G(callbacks), opline->opcode);
     if (!z_fname) {
@@ -1061,12 +1123,19 @@ static void php_xmark_register_opcode_handlers()
     zend_set_user_opcode_handler(ZEND_INCLUDE_OR_EVAL, php_xmark_op1_handler);
     zend_set_user_opcode_handler(ZEND_CONCAT, php_xmark_concat_handler);
     zend_set_user_opcode_handler(ZEND_FAST_CONCAT, php_xmark_concat_handler);
-    zend_set_user_opcode_handler(ZEND_ASSIGN_CONCAT, php_xmark_assign_concat_handler);
     zend_set_user_opcode_handler(ZEND_ROPE_END, php_xmark_rope_end_handler);
     zend_set_user_opcode_handler(ZEND_DO_FCALL, php_xmark_fcall_handler);
     zend_set_user_opcode_handler(ZEND_DO_ICALL, php_xmark_fcall_handler);
     zend_set_user_opcode_handler(ZEND_DO_UCALL, php_xmark_fcall_handler);
     zend_set_user_opcode_handler(ZEND_DO_FCALL_BY_NAME, php_xmark_fcall_handler);
+
+    #if PHP_VERSION_ID >= 70400
+    zend_set_user_opcode_handler(ZEND_ASSIGN_OP, php_xmark_assign_op_handler);
+    zend_set_user_opcode_handler(ZEND_ASSIGN_OBJ_OP, php_xmark_assign_obj_op_handler);
+    zend_set_user_opcode_handler(ZEND_ASSIGN_DIM_OP, php_xmark_assign_dim_op_handler);
+    #elif
+    zend_set_user_opcode_handler(ZEND_ASSIGN_CONCAT, php_xmark_assign_concat_handler);
+    #endif
 
     if (XMARK_G(enable_rename))
         zend_set_user_opcode_handler(ZEND_INIT_FCALL, php_xmark_init_fcall);
@@ -1242,10 +1311,22 @@ static zend_always_inline Bucket *rename_hash_str_key(HashTable *ht, const char 
 
 static void clear_function_run_time_cache(zend_function *fbc)
 {
+
+    void **run_time_cache;
+    #if PHP_VERSION_ID >= 70400
     if (fbc->type != ZEND_USER_FUNCTION ||
+            fbc->op_array.cache_size == 0 || 
+            (RUN_TIME_CACHE(&fbc->op_array) == NULL)) return;
+
+        run_time_cache = zend_arena_alloc(&CG(arena), fbc->op_array.cache_size);
+        memset(run_time_cache, 0, fbc->op_array.cache_size);
+        ZEND_MAP_PTR_SET(fbc->op_array.run_time_cache, run_time_cache);
+    #else
+        if (fbc->type != ZEND_USER_FUNCTION ||
             fbc->op_array.cache_size == 0 || fbc->op_array.run_time_cache == NULL) return;
 
     memset(fbc->op_array.run_time_cache, 0, fbc->op_array.cache_size);
+    #endif
 }
 
 static void clear_run_time_cache()
@@ -1421,7 +1502,7 @@ PHP_FUNCTION(xrename_class)
         return;
     }
 
-    if (Z_CE_P(z_class)->type != ZEND_USER_CLASS) {
+    if (Z_CE_P(z_class)->type == ZEND_INTERNAL_CLASS) {
         zend_error(E_ERROR, "xrename_class can only rename user class");
         return;
     }
@@ -1481,12 +1562,14 @@ PHP_MINIT_FUNCTION(xmark)
     REGISTER_LONG_CONSTANT("XMARK_INCLUDE_OR_EVAL", ZEND_INCLUDE_OR_EVAL, CONST_CS|CONST_PERSISTENT);
     REGISTER_LONG_CONSTANT("XMARK_CONCAT", ZEND_CONCAT, CONST_CS|CONST_PERSISTENT);
     REGISTER_LONG_CONSTANT("XMARK_FAST_CONCAT", ZEND_FAST_CONCAT, CONST_CS|CONST_PERSISTENT);
-    REGISTER_LONG_CONSTANT("XMARK_ASSIGN_CONCAT", ZEND_ASSIGN_CONCAT, CONST_CS|CONST_PERSISTENT);
     REGISTER_LONG_CONSTANT("XMARK_ROPE_END", ZEND_ROPE_END, CONST_CS|CONST_PERSISTENT);
     REGISTER_LONG_CONSTANT("XMARK_DO_FCALL", ZEND_DO_FCALL, CONST_CS|CONST_PERSISTENT);
     REGISTER_LONG_CONSTANT("XMARK_DO_ICALL", ZEND_DO_ICALL, CONST_CS|CONST_PERSISTENT);
     REGISTER_LONG_CONSTANT("XMARK_DO_UCALL", ZEND_DO_UCALL, CONST_CS|CONST_PERSISTENT);
     REGISTER_LONG_CONSTANT("XMARK_DO_FCALL_BY_NAME", ZEND_DO_FCALL_BY_NAME, CONST_CS|CONST_PERSISTENT);
+
+    /* 兼容php7.4 */
+    REGISTER_LONG_CONSTANT("XMARK_ASSIGN_CONCAT", XMARK_ASSIGN_CONCAT, CONST_CS|CONST_PERSISTENT);
 
     php_xmark_register_opcode_handlers();
     rename_from_ini_value(CG(function_table), XMARK_G(rename_functions), XMARK_IS_FUNCTION);
